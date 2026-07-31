@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.example.besmarthelpdesk.constant.MessageConstants;
 
 @Data
@@ -17,5 +18,6 @@ public class LoginRequest {
     private String email;
 
     @NotBlank(message = MessageConstants.PASSWORD_BLANK)
+    @ToString.Exclude
     private String password;
 }

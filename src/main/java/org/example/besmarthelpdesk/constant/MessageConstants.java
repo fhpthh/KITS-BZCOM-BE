@@ -17,7 +17,7 @@ public final class MessageConstants {
     public static final String MEMBER_NOT_FOUND = "Member not found with ID: ";
     public static final String ACCESS_DENIED = "Access denied";
     public static final String UNEXPECTED_ERROR = "An unexpected error occurred";
-    public static final String UNAUTHORIZED = "Unauthorized access";
+    public static final String UNAUTHORIZED = "Invalid email or password";
     
     public static final String VALIDATION_ERROR = "Invalid input parameters";
     public static final String SYSTEM_ERROR = "System internal error";

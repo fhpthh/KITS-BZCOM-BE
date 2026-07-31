@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.example.besmarthelpdesk.constant.MessageConstants;
 import org.example.besmarthelpdesk.enums.Role;
 
@@ -19,6 +20,7 @@ public class RegisterRequest {
     private String email;
 
     @NotBlank(message = MessageConstants.PASSWORD_BLANK)
+    @ToString.Exclude
     private String password;
 
     @NotBlank(message = MessageConstants.NAME_BLANK)
