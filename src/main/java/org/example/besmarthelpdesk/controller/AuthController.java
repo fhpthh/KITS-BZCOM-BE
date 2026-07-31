@@ -7,15 +7,14 @@ import org.example.besmarthelpdesk.constant.MessageConstants;
 import org.example.besmarthelpdesk.dto.ResponseGeneral;
 import org.example.besmarthelpdesk.dto.request.LoginRequest;
 import org.example.besmarthelpdesk.dto.request.RegisterRequest;
+import org.example.besmarthelpdesk.dto.request.TokenRefreshRequest;
+import org.example.besmarthelpdesk.dto.response.LoginAuthResponse;
 import org.example.besmarthelpdesk.dto.response.MemberResponse;
-import org.example.besmarthelpdesk.dto.response.TokenResponse;
+import org.example.besmarthelpdesk.dto.response.RefreshTokenResponse;
 import org.example.besmarthelpdesk.facade.AuthFacade;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping({"/api/auth", "/api/v1/auth"})
@@ -26,10 +25,10 @@ public class AuthController {
     private final AuthFacade authFacade;
 
     @PostMapping("/login")
-    public ResponseEntity<ResponseGeneral<TokenResponse>> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<ResponseGeneral<LoginAuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         log.info("(login) request: {}", request);
-        TokenResponse tokenResponse = authFacade.login(request);
-        ResponseGeneral<TokenResponse> body = ResponseGeneral.success(MessageConstants.LOGIN_SUCCESS, tokenResponse);
+        LoginAuthResponse response = authFacade.login(request);
+        ResponseGeneral<LoginAuthResponse> body = ResponseGeneral.success(MessageConstants.LOGIN_SUCCESS, response);
         return new ResponseEntity<>(body, HttpStatus.OK);
     }
 
@@ -47,5 +46,15 @@ public class AuthController {
         MemberResponse response = authFacade.register(request);
         ResponseGeneral<MemberResponse> body = ResponseGeneral.success(MessageConstants.REGISTER_SUCCESS, response);
         return new ResponseEntity<>(body, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<ResponseGeneral<RefreshTokenResponse>> refreshToken(
+            @Valid @RequestBody TokenRefreshRequest request,
+            @RequestHeader(value = "User-Agent", required = false) String deviceInfo) {
+        log.info("(refreshToken) request: {}", request);
+        RefreshTokenResponse response = authFacade.refreshToken(request, deviceInfo);
+        ResponseGeneral<RefreshTokenResponse> body = ResponseGeneral.success(MessageConstants.REFRESH_SUCCESS, response);
+        return new ResponseEntity<>(body, HttpStatus.OK);
     }
 }

@@ -98,7 +98,10 @@ public class AuthFeatureTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status", is(200)))
                 .andExpect(jsonPath("$.message", is("Login successful")))
-                .andExpect(jsonPath("$.data.token", notNullValue()));
+                .andExpect(jsonPath("$.data.accessToken", notNullValue()))
+                .andExpect(jsonPath("$.data.refreshToken", notNullValue()))
+                .andExpect(jsonPath("$.data.user.email", is("login@example.com")))
+                .andExpect(jsonPath("$.data.user.name", is("Login User")));
     }
 
     @Test
@@ -129,5 +132,42 @@ public class AuthFeatureTest {
     public void testGetMembers_AllowedForAdmin() throws Exception {
         mockMvc.perform(get("/api/members"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testRefreshToken_Success() throws Exception {
+        RegisterRequest register = new RegisterRequest("refresh_test@example.com", "password123", "Refresh User", Role.DEVELOPER);
+        mockMvc.perform(post("/api/members")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(register)))
+                .andExpect(status().isCreated());
+
+        LoginRequest login = new LoginRequest("refresh_test@example.com", "password123");
+        String loginResponse = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(login)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        String refreshToken = com.jayway.jsonpath.JsonPath.read(loginResponse, "$.data.refreshToken");
+
+        org.example.besmarthelpdesk.dto.request.TokenRefreshRequest refreshRequest =
+                new org.example.besmarthelpdesk.dto.request.TokenRefreshRequest(refreshToken);
+
+        String refreshResponse = mockMvc.perform(post("/api/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(refreshRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status", is(200)))
+                .andExpect(jsonPath("$.data.accessToken", notNullValue()))
+                .andExpect(jsonPath("$.data.refreshToken", notNullValue()))
+                .andExpect(jsonPath("$.data.accessTokenTtl", notNullValue()))
+                .andExpect(jsonPath("$.data.refreshTokenTtl", notNullValue()))
+                .andReturn().getResponse().getContentAsString();
+
+        mockMvc.perform(post("/api/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(refreshRequest)))
+                .andExpect(status().isUnauthorized());
     }
 }

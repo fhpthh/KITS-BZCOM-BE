@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 @Slf4j
@@ -27,28 +28,49 @@ public class JwtTokenProvider {
 
     public String generateToken(Authentication authentication) {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        return generateAccessToken(userPrincipal.getUsername(), userPrincipal.getId());
+    }
 
+    public String generateAccessToken(String email, UUID userId) {
+        log.info("(generateAccessToken) Generating for email: {}, userId: {}", email, userId);
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
 
         return Jwts.builder()
-                .setSubject(userPrincipal.getUsername())
-                .setIssuedAt(new Date())
+                .setSubject(email)
+                .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .claim("id", userPrincipal.getId())
-                .claim("role", userPrincipal.getAuthorities())
+                .claim("id", userId.toString())
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public String getUsernameFromJwt(String token) {
-        Claims claims = Jwts.parserBuilder()
+    public String generateRefreshToken(String email, UUID userId) {
+        log.info("(generateRefreshToken) Generating for email: {}, userId: {}", email, userId);
+        Date now = new Date();
+        long refreshTokenExpirationInMs = getRefreshTokenExpiration();
+        Date expiryDate = new Date(now.getTime() + refreshTokenExpirationInMs);
+
+        return Jwts.builder()
+                .setId(UUID.randomUUID().toString()) // jti (tokenHash)
+                .setSubject(email)
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .claim("id", userId.toString())
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public Claims extractClaims(String token) {
+        return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
 
-        return claims.getSubject();
+    public String getUsernameFromJwt(String token) {
+        return extractClaims(token).getSubject();
     }
 
     public boolean validateToken(String authToken) {
@@ -62,5 +84,13 @@ public class JwtTokenProvider {
             log.warn("Invalid JWT token status: {}", ex.getMessage());
         }
         return false;
+    }
+
+    public long getAccessTokenExpiration() {
+        return jwtExpirationInMs;
+    }
+
+    public long getRefreshTokenExpiration() {
+        return jwtExpirationInMs * 7;
     }
 }

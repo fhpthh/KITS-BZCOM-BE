@@ -11,6 +11,7 @@ public final class MessageConstants {
     public static final String LOGIN_SUCCESS = "Login successful";
     public static final String LOGOUT_SUCCESS = "Logout successful";
     public static final String REGISTER_SUCCESS = "Member registered successfully";
+    public static final String REFRESH_SUCCESS = "Token refreshed successfully";
 
     // Error Messages
     public static final String EMAIL_REGISTERED = "Email is already registered";
@@ -22,6 +23,8 @@ public final class MessageConstants {
     public static final String VALIDATION_ERROR = "Invalid input parameters";
     public static final String SYSTEM_ERROR = "System internal error";
     public static final String NOT_FOUND = "Resource not found";
+    public static final String REFRESH_TOKEN_BLANK = "Refresh token cannot be blank";
+    public static final String REFRESH_TOKEN_INVALID = "Refresh token is invalid or expired";
     public static final String BAD_REQUEST = "Bad request";
 
     // Validation Messages
