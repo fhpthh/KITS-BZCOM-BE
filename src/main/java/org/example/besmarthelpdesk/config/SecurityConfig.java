@@ -36,6 +36,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(SecurityConstants.PUBLIC_URLS).permitAll()
+                        .requestMatchers("/api/requests/classify", "/api/requests/suggest-priority", "/api/requests/*/summary").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/members").permitAll() // Registration is public
                         .requestMatchers(HttpMethod.GET, "/api/members").hasRole(SecurityConstants.ROLE_ADMIN) // Admin only
                         .anyRequest().authenticated()

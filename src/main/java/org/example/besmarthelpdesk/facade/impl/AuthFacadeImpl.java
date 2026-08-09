@@ -88,7 +88,8 @@ public class AuthFacadeImpl implements AuthFacade {
     public void logout() {
         if (SecurityContextHolder.getContext().getAuthentication() != null) {
             Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            if (principal instanceof UserPrincipal userPrincipal) {
+            if (principal instanceof UserPrincipal) {
+                UserPrincipal userPrincipal = (UserPrincipal) principal;
                 log.info("(logout) userId: {}", userPrincipal.getId());
                 tokenRevocationService.revokeAllForUser(userPrincipal.getId());
             } else {
