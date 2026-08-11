@@ -11,4 +11,7 @@ import java.util.UUID;
 public interface MemberRepository extends JpaRepository<Member, UUID> {
     Optional<Member> findByEmail(String email);
     boolean existsByEmail(String email);
+    Optional<Member> findByMemberId(String memberId);
+    boolean existsByMemberId(String memberId);
 }
+

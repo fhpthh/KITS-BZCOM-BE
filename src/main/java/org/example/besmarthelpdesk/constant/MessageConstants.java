@@ -15,6 +15,7 @@ public final class MessageConstants {
 
     // Error Messages
     public static final String EMAIL_REGISTERED = "Email is already registered";
+    public static final String MEMBER_ID_EXISTS = "Member ID is already registered";
     public static final String MEMBER_NOT_FOUND = "Member not found with ID: ";
     public static final String ACCESS_DENIED = "Access denied";
     public static final String UNEXPECTED_ERROR = "An unexpected error occurred";

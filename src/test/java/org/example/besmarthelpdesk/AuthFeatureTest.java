@@ -20,8 +20,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.springframework.test.context.ActiveProfiles;
+
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 public class AuthFeatureTest {
 
     @Autowired
@@ -39,6 +42,7 @@ public class AuthFeatureTest {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
     public void testRegisterMember_Success() throws Exception {
         RegisterRequest request = new RegisterRequest("test@example.com", "password123", "Test User", Role.CLIENT);
 
@@ -51,7 +55,66 @@ public class AuthFeatureTest {
                 .andExpect(jsonPath("$.data.email", is("test@example.com")))
                 .andExpect(jsonPath("$.data.name", is("Test User")))
                 .andExpect(jsonPath("$.data.role", is("CLIENT")))
+                .andExpect(jsonPath("$.data.memberId", startsWith("MB_CLI")))
+                .andExpect(jsonPath("$.data.status", is("active")))
                 .andExpect(jsonPath("$.data.id", notNullValue()));
+    }
+
+    @Test
+    public void testRegisterMember_WithFullAttributes() throws Exception {
+        RegisterRequest request = RegisterRequest.builder()
+                .memberId("MB_CUSTOM01")
+                .companyId("KR_CLIENT_Ss")
+                .email("custom@samsung.com")
+                .password("password123")
+                .name("Samsung Client")
+                .phone("+82-10-1111-2222")
+                .role(Role.CLIENT)
+                .status("active")
+                .build();
+
+        mockMvc.perform(post("/api/members")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status", is(200)))
+                .andExpect(jsonPath("$.data.memberId", is("MB_CUSTOM01")))
+                .andExpect(jsonPath("$.data.companyId", is("KR_CLIENT_Ss")))
+                .andExpect(jsonPath("$.data.email", is("custom@samsung.com")))
+                .andExpect(jsonPath("$.data.phone", is("+82-10-1111-2222")))
+                .andExpect(jsonPath("$.data.status", is("active")))
+                .andExpect(jsonPath("$.data.isDeleted", is(false)));
+    }
+
+    @Test
+    public void testRegisterMember_MemberIdCollision() throws Exception {
+        RegisterRequest request1 = RegisterRequest.builder()
+                .memberId("MB_DUP01")
+                .email("user1@example.com")
+                .password("password123")
+                .name("User 1")
+                .role(Role.DEVELOPER)
+                .build();
+
+        mockMvc.perform(post("/api/members")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request1)))
+                .andExpect(status().isCreated());
+
+        RegisterRequest request2 = RegisterRequest.builder()
+                .memberId("MB_DUP01")
+                .email("user2@example.com")
+                .password("password123")
+                .name("User 2")
+                .role(Role.DEVELOPER)
+                .build();
+
+        mockMvc.perform(post("/api/members")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request2)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath("$.message", containsString("Member ID is already registered")));
     }
 
     @Test
