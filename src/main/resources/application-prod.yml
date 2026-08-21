@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:${DB_URL:jdbc:postgresql://ep-falling-mountain-aznni1c2.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require}}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER:${DB_DRIVER:org.postgresql.Driver}}
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USERNAME:neondb_owner}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:npg_1EmrwTHB7QpR}}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250655368566D5971}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+    header: Authorization
+    prefix: "Bearer "
+
