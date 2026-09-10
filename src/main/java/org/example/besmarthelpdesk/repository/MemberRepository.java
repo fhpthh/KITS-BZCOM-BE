@@ -11,4 +11,7 @@ import java.util.UUID;
 public interface MemberRepository extends JpaRepository<Member, UUID> {
     Optional<Member> findByEmail(String email);
     boolean existsByEmail(String email);
+    Optional<Member> findByEmailAndIsDeletedFalse(String email);
+    java.util.List<Member> findAllByIsDeletedFalse();
+    java.util.List<Member> findByRoleAndIsDeletedFalse(org.example.besmarthelpdesk.enums.Role role);
 }
