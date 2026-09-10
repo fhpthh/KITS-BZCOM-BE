@@ -74,6 +74,10 @@ public class AuthFacadeImpl implements AuthFacade {
                 .email(memberResponse.getEmail())
                 .name(memberResponse.getName())
                 .role(memberResponse.getRole())
+                .phone(memberResponse.getPhone())
+                .companyId(memberResponse.getCompanyId())
+                .companyName(memberResponse.getCompanyName())
+                .status(memberResponse.getStatus())
                 .build();
 
         log.info("(login) token generated successfully for: {}", request.getEmail());
