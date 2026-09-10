@@ -51,7 +51,48 @@ public class AuthFeatureTest {
                 .andExpect(jsonPath("$.data.email", is("test@example.com")))
                 .andExpect(jsonPath("$.data.name", is("Test User")))
                 .andExpect(jsonPath("$.data.role", is("CLIENT")))
+                .andExpect(jsonPath("$.data.status", is("active")))
                 .andExpect(jsonPath("$.data.id", notNullValue()));
+    }
+
+    @Test
+    public void testRegisterMember_WithCompanyAndPhone_Success() throws Exception {
+        RegisterRequest request = RegisterRequest.builder()
+                .email("samsung_client@example.com")
+                .password("password123")
+                .name("Samsung Client")
+                .role(Role.CLIENT)
+                .phone("+82-10-1234-5678")
+                .companyId("KR_CLIENT_Ss")
+                .build();
+
+        mockMvc.perform(post("/api/members")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status", is(200)))
+                .andExpect(jsonPath("$.data.email", is("samsung_client@example.com")))
+                .andExpect(jsonPath("$.data.phone", is("+82-10-1234-5678")))
+                .andExpect(jsonPath("$.data.companyId", is("KR_CLIENT_Ss")))
+                .andExpect(jsonPath("$.data.companyName", is("Samsung C&T Corporation")))
+                .andExpect(jsonPath("$.data.status", is("active")));
+    }
+
+    @Test
+    public void testRegisterMember_WithNonExistentCompany_NotFound() throws Exception {
+        RegisterRequest request = RegisterRequest.builder()
+                .email("invalid_company@example.com")
+                .password("password123")
+                .name("Invalid Company User")
+                .role(Role.CLIENT)
+                .companyId("NON_EXISTENT_COMPANY")
+                .build();
+
+        mockMvc.perform(post("/api/members")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status", is(404)));
     }
 
     @Test
@@ -101,7 +142,37 @@ public class AuthFeatureTest {
                 .andExpect(jsonPath("$.data.accessToken", notNullValue()))
                 .andExpect(jsonPath("$.data.refreshToken", notNullValue()))
                 .andExpect(jsonPath("$.data.user.email", is("login@example.com")))
-                .andExpect(jsonPath("$.data.user.name", is("Login User")));
+                .andExpect(jsonPath("$.data.user.name", is("Login User")))
+                .andExpect(jsonPath("$.data.user.status", is("active")));
+    }
+
+    @Test
+    public void testLogin_WithCompanyAndPhone_Success() throws Exception {
+        RegisterRequest register = RegisterRequest.builder()
+                .email("naver_user@example.com")
+                .password("password123")
+                .name("Naver Dev")
+                .role(Role.DEVELOPER)
+                .phone("+82-10-9999-8888")
+                .companyId("KR_CLIENT_Nv")
+                .build();
+
+        mockMvc.perform(post("/api/members")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(register)))
+                .andExpect(status().isCreated());
+
+        LoginRequest login = new LoginRequest("naver_user@example.com", "password123");
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(login)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status", is(200)))
+                .andExpect(jsonPath("$.data.user.email", is("naver_user@example.com")))
+                .andExpect(jsonPath("$.data.user.phone", is("+82-10-9999-8888")))
+                .andExpect(jsonPath("$.data.user.companyId", is("KR_CLIENT_Nv")))
+                .andExpect(jsonPath("$.data.user.companyName", is("Naver Financial Corp.")))
+                .andExpect(jsonPath("$.data.user.status", is("active")));
     }
 
     @Test
