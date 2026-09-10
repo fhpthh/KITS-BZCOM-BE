@@ -11,10 +11,10 @@
 4. [Hướng Dẫn Khởi Chạy Local](#4-hướng-dẫn-khởi-chạy-local)
 5. [Tài Khoản & Dữ Liệu Mẫu Thử Nghiệm](#5-tài-khoản--dữ-liệu-mẫu-thử-nghiệm)
 6. [Đặc Tả API Cho Frontend (Frontend API Contracts)](#6-đặc-tả-api-cho-frontend-frontend-api-contracts)
-   - [Định Dạng Response Chuẩn (Envelope Pattern)](#định-dạng-response-chuẩn-envelope-pattern)
-   - [Hướng Dẫn Cấu Hình Axios Cho Frontend](#hướng-dẫn-cấu-hình-axios-cho-frontend)
-   - [Bảng Tổng Hợp Danh Sách API](#bảng-tổng-hợp-danh-sách-api)
-   - [Chi Tiết Từng Nhóm API](#chi-tiết-từng-nhóm-api)
+    - [Định Dạng Response Chuẩn (Envelope Pattern)](#định-dạng-response-chuẩn-envelope-pattern)
+    - [Hướng Dẫn Cấu Hình Axios Cho Frontend](#hướng-dẫn-cấu-hình-axios-cho-frontend)
+    - [Bảng Tổng Hợp Danh Sách API](#bảng-tổng-hợp-danh-sách-api)
+    - [Chi Tiết Từng Nhóm API](#chi-tiết-từng-nhóm-api)
 7. [Postman Test Collection & Newman](#7-postman-test-collection--newman)
 
 ---
@@ -34,45 +34,25 @@
 Dự án được xây dựng theo chuẩn mực Senior Software Engineering:
 
 1. **Zero JPA Relationship Mapping (Decoupled Entity Model)**:
-   * **Tuyệt đối không dùng** `@ManyToOne`, `@OneToMany`, `@JoinColumn`.
-   * Các Entity (`Member`, `Company`, `Request`, `RequestHistory`, `Alert`, `ChatMessage`) chỉ lưu trữ các trường ID nguyên thủy (`UUID` hoặc `String`).
-   * Tránh hoàn toàn các vấn đề N+1 queries, lazy loading serialization exception và cascading xóa nhầm dữ liệu. Dữ liệu liên kết được nạp thủ công bằng **Batch Queries** (`findAllById`) ở tầng Facade.
+    * **Tuyệt đối không dùng** `@ManyToOne`, `@OneToMany`, `@JoinColumn`.
+    * Các Entity (`Member`, `Company`, `Request`, `RequestHistory`, `Alert`, `ChatMessage`) chỉ lưu trữ các trường ID nguyên thủy (`UUID` hoặc `String`).
+    * Tránh hoàn toàn các vấn đề N+1 queries, lazy loading serialization exception và cascading xóa nhầm dữ liệu. Dữ liệu liên kết được nạp thủ công bằng **Batch Queries** (`findAllById`) ở tầng Facade.
 2. **Mẫu Facade Pattern**:
-   * `RequestFacade`, `AlertFacade`, `LlmFacade`, `AuthFacade` đóng vai trò giao diện trung gian, gom các Service lại, xử lý nghiệp vụ phân quyền (RBAC) và chuyển đổi Entity $\leftrightarrow$ DTO trước khi trả về Controller.
+    * `RequestFacade`, `AlertFacade`, `LlmFacade`, `AuthFacade` đóng vai trò giao diện trung gian, gom các Service lại, xử lý nghiệp vụ phân quyền (RBAC) và chuyển đổi Entity $\leftrightarrow$ DTO trước khi trả về Controller.
 3. **Mẫu Adapter Pattern**:
-   * `LlmAdapter` (cài đặt cụ thể qua `RuleBasedLlmAdapter`): Chuẩn hóa giao diện xử lý ngôn ngữ tự nhiên (phân loại category, gợi ý độ ưu tiên, tóm tắt ticket). Dễ dàng cắm thêm OpenAI API / Gemini API mà không làm thay đổi luồng nghiệp vụ cốt lõi.
+    * `LlmAdapter` (cài đặt cụ thể qua `RuleBasedLlmAdapter`): Chuẩn hóa giao diện xử lý ngôn ngữ tự nhiên (phân loại category, gợi ý độ ưu tiên, tóm tắt ticket). Dễ dàng cắm thêm OpenAI API / Gemini API mà không làm thay đổi luồng nghiệp vụ cốt lõi.
 4. **Mẫu State Transition / Validator Pattern**:
-   * `RequestStatusValidator`: Kiểm soát chặt chẽ luồng vòng đời ticket: `PENDING` $\rightarrow$ `IN_PROGRESS` $\rightarrow$ `DONE`. Ngăn chặn nhảy cóc trạng thái, ngăn mở lại ticket đã hoàn thành.
+    * `RequestStatusValidator`: Kiểm soát chặt chẽ luồng vòng đời ticket: `PENDING` $\rightarrow$ `IN_PROGRESS` $\rightarrow$ `DONE`. Ngăn chặn nhảy cóc trạng thái, ngăn mở lại ticket đã hoàn thành.
 5. **Chống Race Condition & Toàn Vẹn Giao Dịch**:
-   * Áp dụng **Pessimistic Write Lock (`@Lock(LockModeType.PESSIMISTIC_WRITE)`)** trên phương thức `findByIdForUpdate` trong `RequestRepository`.
-   * Khi 2 request cùng lúc cố gắng nhận việc hoặc cập nhật trạng thái trên cùng 1 ticket, database lock sẽ tuần tự hóa giao dịch, bảo đảm chỉ 1 thao tác thành công.
+    * Áp dụng **Pessimistic Write Lock (`@Lock(LockModeType.PESSIMISTIC_WRITE)`)** trên phương thức `findByIdForUpdate` trong `RequestRepository`.
+    * Khi 2 request cùng lúc cố gắng nhận việc hoặc cập nhật trạng thái trên cùng 1 ticket, database lock sẽ tuần tự hóa giao dịch, bảo đảm chỉ 1 thao tác thành công.
 6. **Thuật Toán Phân Công Tự Động (Auto-Assignment)**:
-   * **Quy tắc 1 (Workload thấp nhất)**: Chọn Developer có số lượng task đang làm (`PENDING` + `IN_PROGRESS`) ít nhất.
-   * **Quy tắc 2 (Tie-Breaker)**: Nếu hòa nhau, chọn Developer có task hoàn thành gần đây nhất (`MAX(updatedAt)` với trạng thái `DONE`).
-   * **Fallback**: So sánh ID tăng dần để đảm bảo tính xác định (deterministic).
+    * **Quy tắc 1 (Workload thấp nhất)**: Chọn Developer có số lượng task đang làm (`PENDING` + `IN_PROGRESS`) ít nhất.
+    * **Quy tắc 2 (Tie-Breaker)**: Nếu hòa nhau, chọn Developer có task hoàn thành gần đây nhất (`MAX(updatedAt)` với trạng thái `DONE`).
+    * **Fallback**: So sánh ID tăng dần để đảm bảo tính xác định (deterministic).
 
 ---
-
-## 3. Giải Đáp: Phía Backend Có Cần CQRS Để Frontend Hoạt Động Được Không?
-
-### Câu trả lời: **KHÔNG CẦN THIẾT!**
-
-#### Vì sao Frontend hoàn toàn không phụ thuộc vào CQRS ở Backend?
-1. **Giao Thức RESTful Độc Lập**:
-   * Frontend giao tiếp với Backend thông qua chuẩn **REST API (JSON over HTTP)**.
-   * Frontend chỉ quan tâm đến: **URL Endpoint**, **HTTP Method** (`GET`, `POST`, `PATCH`, `DELETE`), **Headers** (`Authorization: Bearer <token>`), và cấu trúc dữ liệu JSON gửi đi / nhận về (`ResponseGeneral<T>`).
-   * Phía sau Controller, Backend viết theo mô hình phân tầng truyền thống (Controller - Facade - Service - Repository) hay viết theo CQRS (Command Query Responsibility Segregation) thì Response trả về cho Frontend vẫn hoàn toàn giống hệt nhau.
-
-2. **Dự án Đã Áp Dụng "CQRS Logic" Tự Nhiên & Tối Ưu**:
-   * **Nhánh Query (Đọc dữ liệu)**: Được tối ưu với `@Transactional(readOnly = true)`, kết hợp `RequestSpecification` cho phép lọc động nhiều tiêu chí và cơ chế gom nhóm Batch Query chống N+1.
-   * **Nhánh Command (Ghi / Cập nhật)**: Được bảo vệ bởi `@Transactional` và **Pessimistic Locking** chống xung đột dữ liệu.
-   * Cách thiết kế này vừa giữ cho mã nguồn gọn gàng (Clean & DRY), vừa đảm bảo dữ liệu luôn **nhất quán tức thì (Strong Consistency)**, tránh được sự phức tạp không đáng có của việc đồng bộ Eventual Consistency nếu dùng CQRS phân tách DB riêng.
-
-👉 **Kết luận**: Backend hiện tại đã hoàn thiện 100% và sẵn sàng phục vụ Frontend kết nối gọi API ngay lập tức!
-
----
-
-## 4. Hướng Dẫn Khởi Chạy Local & Tùy Chọn Cơ Sở Dữ Liệu (H2 hoặc MySQL)
+## 3. Hướng Dẫn Khởi Chạy Local & Tùy Chọn Cơ Sở Dữ Liệu (H2 hoặc MySQL)
 
 ### Yêu cầu môi trường
 * **JDK 21** (hoặc JDK 17 trở lên)
@@ -121,7 +101,7 @@ Bạn có thể khởi chạy bằng 1 trong các cách sau:
   ```
 
 * **Cách C: Cấu hình trong IDE (IntelliJ IDEA / VS Code)**:
-  * Trong **Run/Debug Configuration** $\rightarrow$ **Active Profiles**: điền `mysql`.
+    * Trong **Run/Debug Configuration** $\rightarrow$ **Active Profiles**: điền `mysql`.
 
 Khi chạy lần đầu, Liquibase sẽ **tự động khởi tạo database `smart_helpdesk_db`**, tự động tạo toàn bộ bảng (`members`, `companies`, `requests`, `request_histories`, `alerts`, `chat_messages`) và seed sẵn 3 công ty đối tác Hàn Quốc mà bạn không cần phải chạy SQL thủ công!
 
@@ -139,7 +119,7 @@ Khi chạy lần đầu, Liquibase sẽ **tự động khởi tạo database `sm
 
 ---
 
-## 5. Tài Khoản & Dữ Liệu Mẫu Thử Nghiệm
+## 4. Tài Khoản & Dữ Liệu Mẫu Thử Nghiệm
 
 Khi hệ thống khởi chạy, Liquibase tự động seed các công ty đối tác:
 * `KR_CLIENT_Ss`: Samsung C&T Corporation
@@ -157,7 +137,7 @@ Bạn có thể dùng các tài khoản mẫu sau để test hoặc đăng ký t
 
 ---
 
-## 6. Đặc Tả API Cho Frontend (Frontend API Contracts)
+## 5. Đặc Tả API Cho Frontend (Frontend API Contracts)
 
 ### Định Dạng Response Chuẩn (Envelope Pattern)
 Mọi API trong hệ thống đều trả về cấu trúc đồng nhất:
@@ -396,18 +376,18 @@ export default api;
 ##### 2.2 Lấy danh sách yêu cầu (`GET /api/requests`)
 * **Headers**: `Authorization: Bearer <token>`
 * **Query Parameters (tùy chọn)**:
-  * `category`: `BUG`, `FEATURE`, `INQUIRY`
-  * `priority`: `HIGH`, `MEDIUM`, `LOW`
-  * `status`: `PENDING`, `IN_PROGRESS`, `DONE`
-  * `search`: Từ khóa tìm kiếm trong title và description
-  * `page`: Trang cần xem (mặc định: `0`)
-  * `size`: Số phần tử trên trang (mặc định: `10`)
-  * `sortBy`: Trường sắp xếp (mặc định: `createdAt`)
-  * `sortDir`: Hướng sắp xếp: `asc` hoặc `desc` (mặc định: `desc`)
+    * `category`: `BUG`, `FEATURE`, `INQUIRY`
+    * `priority`: `HIGH`, `MEDIUM`, `LOW`
+    * `status`: `PENDING`, `IN_PROGRESS`, `DONE`
+    * `search`: Từ khóa tìm kiếm trong title và description
+    * `page`: Trang cần xem (mặc định: `0`)
+    * `size`: Số phần tử trên trang (mặc định: `10`)
+    * `sortBy`: Trường sắp xếp (mặc định: `createdAt`)
+    * `sortDir`: Hướng sắp xếp: `asc` hoặc `desc` (mặc định: `desc`)
 * **RBAC Data Isolation (Phân quyền dữ liệu)**:
-  * User `CLIENT`: Chỉ thấy các ticket thuộc công ty của mình.
-  * User `DEVELOPER`: Chỉ thấy các ticket được phân công cho mình.
-  * User `ADMIN`: Thấy toàn bộ ticket của toàn hệ thống.
+    * User `CLIENT`: Chỉ thấy các ticket thuộc công ty của mình.
+    * User `DEVELOPER`: Chỉ thấy các ticket được phân công cho mình.
+    * User `ADMIN`: Thấy toàn bộ ticket của toàn hệ thống.
 * **Response Body (200 OK)**:
 ```json
 {
@@ -528,11 +508,11 @@ export default api;
 * **Quyền yêu cầu**: `ROLE_ADMIN` hoặc **Chính Developer được phân công task đó**.
 * **Headers**: `Authorization: Bearer <dev_token>`
 * **Quy tắc chuyển đổi nghiêm ngặt (State Pattern)**:
-  * Hợp lệ: `PENDING` $\rightarrow$ `IN_PROGRESS`
-  * Hợp lệ: `IN_PROGRESS` $\rightarrow$ `DONE`
-  * Bị chặn (400 Bad Request): `PENDING` $\rightarrow$ `DONE` (Nhảy cóc)
-  * Bị chặn (400 Bad Request): `DONE` $\rightarrow$ `IN_PROGRESS` (Không cho mở lại ticket đã đóng)
-  * Bị chặn (400 Bad Request): Cập nhật sang cùng trạng thái hiện tại
+    * Hợp lệ: `PENDING` $\rightarrow$ `IN_PROGRESS`
+    * Hợp lệ: `IN_PROGRESS` $\rightarrow$ `DONE`
+    * Bị chặn (400 Bad Request): `PENDING` $\rightarrow$ `DONE` (Nhảy cóc)
+    * Bị chặn (400 Bad Request): `DONE` $\rightarrow$ `IN_PROGRESS` (Không cho mở lại ticket đã đóng)
+    * Bị chặn (400 Bad Request): Cập nhật sang cùng trạng thái hiện tại
 * **Request Body**:
 ```json
 {
