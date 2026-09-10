@@ -26,5 +26,9 @@ public class LoginAuthResponse {
         private String email;
         private String name;
         private Role role;
+        private String phone;
+        private String companyId;
+        private String companyName;
+        private String status;
     }
 }

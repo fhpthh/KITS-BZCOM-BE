@@ -10,9 +10,12 @@ import lombok.ToString;
 import org.example.besmarthelpdesk.constant.MessageConstants;
 import org.example.besmarthelpdesk.enums.Role;
 
+import lombok.Builder;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class RegisterRequest {
 
     @NotBlank(message = MessageConstants.EMAIL_BLANK)
@@ -28,4 +31,15 @@ public class RegisterRequest {
 
     @NotNull(message = MessageConstants.ROLE_NULL)
     private Role role;
+
+    private String phone;
+
+    private String companyId;
+
+    public RegisterRequest(String email, String password, String name, Role role) {
+        this.email = email;
+        this.password = password;
+        this.name = name;
+        this.role = role;
+    }
 }
