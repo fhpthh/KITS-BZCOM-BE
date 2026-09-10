@@ -6,11 +6,14 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.example.besmarthelpdesk.enums.Role;
 
+import java.time.Instant;
+
 @Entity
 @Table(name = "members")
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @SuperBuilder
 @ToString(exclude = "password")
 public class Member extends AuditEntity {
@@ -28,4 +31,21 @@ public class Member extends AuditEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Role role;
+
+    @Column(name = "company_id", length = 20)
+    private String companyId;
+
+    @Column(length = 20)
+    private String phone;
+
+    @Column(length = 20)
+    @Builder.Default
+    private String status = "active";
+
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
+    @Column(name = "is_deleted", nullable = false)
+    @Builder.Default
+    private Boolean isDeleted = false;
 }
