@@ -1,0 +1,1333 @@
+{
+  "info": {
+    "_postman_id": "8bfa2e41-0f72-4d2a-9f56-e265c1439281",
+    "name": "Smart Helpdesk CRM - Full API Test Suite",
+    "description": "Comprehensive Postman Test Collection for Smart Helpdesk CRM:\n- Auth & RBAC (Admin, Client, Developer)\n- Request Management (CRUD, Filters, History, Assign, Status Transition)\n- AI / LLM Feature Endpoints (Classify, Suggest Priority, Summarize)\n- Alerts & Notifications Management\n- Concurrency & Validation edge-cases",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "client_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "dev1_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "dev2_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "client_refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "dev1_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "dev2_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "request_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "alert_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 - Authentication & User Registration",
+      "description": "Registers Admin, Developers, and Clients, then performs login and stores JWT tokens in collection variables.",
+      "item": [
+        {
+          "name": "1.1 Register Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 or 400 (if already registered)\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([201, 400]);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@bizcom.com\",\n  \"password\": \"Admin@123456\",\n  \"name\": \"Bizcom System Admin\",\n  \"role\": \"ADMIN\",\n  \"phone\": \"0901112222\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "1.2 Register Developer 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 or 400\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([201, 400]);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "    var data = pm.response.json().data;",
+                  "    pm.collectionVariables.set(\"dev1_id\", data.id);",
+                  "    if (pm.environment && pm.environment.name) pm.environment.set(\"dev1_id\", data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"dev1@bizcom.com\",\n  \"password\": \"Dev@123456\",\n  \"name\": \"Nguyen Van Dev1\",\n  \"role\": \"DEVELOPER\",\n  \"phone\": \"0903334444\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "1.3 Register Developer 2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 or 400\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([201, 400]);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "    var data = pm.response.json().data;",
+                  "    pm.collectionVariables.set(\"dev2_id\", data.id);",
+                  "    if (pm.environment && pm.environment.name) pm.environment.set(\"dev2_id\", data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"dev2@bizcom.com\",\n  \"password\": \"Dev@123456\",\n  \"name\": \"Tran Thi Dev2\",\n  \"role\": \"DEVELOPER\",\n  \"phone\": \"0905556666\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "1.4 Register Client (Samsung C&T)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 or 400\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([201, 400]);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.companyId).to.eql(\"KR_CLIENT_Ss\");",
+                  "    pm.expect(jsonData.data.companyName).to.eql(\"Samsung C&T Corporation\");",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"client.samsung@samsung.com\",\n  \"password\": \"Client@123456\",\n  \"name\": \"Kim Samsung\",\n  \"role\": \"CLIENT\",\n  \"companyId\": \"KR_CLIENT_Ss\",\n  \"phone\": \"0907778888\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "1.5 Login as Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Admin token retrieved\", function () {",
+                  "    pm.expect(jsonData.data.accessToken).to.be.a('string');",
+                  "    pm.collectionVariables.set(\"admin_token\", jsonData.data.accessToken);",
+                  "    if (pm.environment && pm.environment.name) pm.environment.set(\"admin_token\", jsonData.data.accessToken);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@bizcom.com\",\n  \"password\": \"Admin@123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "1.6 Login as Client",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Client token retrieved and saved\", function () {",
+                  "    pm.expect(jsonData.data.accessToken).to.be.a('string');",
+                  "    pm.expect(jsonData.data.user.role).to.eql('CLIENT');",
+                  "    pm.expect(jsonData.data.user.companyId).to.eql('KR_CLIENT_Ss');",
+                  "    pm.collectionVariables.set(\"client_token\", jsonData.data.accessToken);",
+                  "    pm.collectionVariables.set(\"client_refresh_token\", jsonData.data.refreshToken);",
+                  "    pm.collectionVariables.set(\"client_id\", jsonData.data.user.id);",
+                  "    if (pm.environment && pm.environment.name) {",
+                  "        pm.environment.set(\"client_token\", jsonData.data.accessToken);",
+                  "        pm.environment.set(\"client_refresh_token\", jsonData.data.refreshToken);",
+                  "        pm.environment.set(\"client_id\", jsonData.data.user.id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"client.samsung@samsung.com\",\n  \"password\": \"Client@123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "1.7 Login as Developer 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Dev1 token retrieved\", function () {",
+                  "    pm.expect(jsonData.data.accessToken).to.be.a('string');",
+                  "    pm.collectionVariables.set(\"dev1_token\", jsonData.data.accessToken);",
+                  "    pm.collectionVariables.set(\"dev1_id\", jsonData.data.user.id);",
+                  "    if (pm.environment && pm.environment.name) {",
+                  "        pm.environment.set(\"dev1_token\", jsonData.data.accessToken);",
+                  "        pm.environment.set(\"dev1_id\", jsonData.data.user.id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"dev1@bizcom.com\",\n  \"password\": \"Dev@123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "1.8 Login as Developer 2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Dev2 token retrieved\", function () {",
+                  "    pm.expect(jsonData.data.accessToken).to.be.a('string');",
+                  "    pm.collectionVariables.set(\"dev2_token\", jsonData.data.accessToken);",
+                  "    pm.collectionVariables.set(\"dev2_id\", jsonData.data.user.id);",
+                  "    if (pm.environment && pm.environment.name) {",
+                  "        pm.environment.set(\"dev2_token\", jsonData.data.accessToken);",
+                  "        pm.environment.set(\"dev2_id\", jsonData.data.user.id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"dev2@bizcom.com\",\n  \"password\": \"Dev@123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "1.9 Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"New access token and refresh token received\", function () {",
+                  "    pm.expect(jsonData.data.accessToken).to.be.a('string');",
+                  "    pm.expect(jsonData.data.refreshToken).to.be.a('string');",
+                  "    pm.collectionVariables.set(\"client_token\", jsonData.data.accessToken);",
+                  "    pm.collectionVariables.set(\"client_refresh_token\", jsonData.data.refreshToken);",
+                  "    if (pm.environment && pm.environment.name) {",
+                  "        pm.environment.set(\"client_token\", jsonData.data.accessToken);",
+                  "        pm.environment.set(\"client_refresh_token\", jsonData.data.refreshToken);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{client_refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "refresh"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - AI Features (LLM)",
+      "description": "Tests intelligent category classification, priority suggestions, and request summaries.",
+      "item": [
+        {
+          "name": "2.1 AI Classify Request - BUG",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Category classified as BUG\", function () {",
+                  "    pm.expect(jsonData.data.category).to.eql(\"BUG\");",
+                  "    pm.expect(jsonData.data.confidence).to.be.above(0.5);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Ứng dụng bị sập và hiển thị lỗi 500 khi người dùng thực hiện thanh toán qua cổng VNPAY.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/classify",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "classify"]
+            }
+          }
+        },
+        {
+          "name": "2.2 AI Classify Request - FEATURE",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Category classified as FEATURE\", function () {",
+                  "    pm.expect(jsonData.data.category).to.eql(\"FEATURE\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Cần phát triển thêm tính năng xuất dữ liệu báo cáo doanh thu ra file Excel trên Dashboard.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/classify",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "classify"]
+            }
+          }
+        },
+        {
+          "name": "2.3 AI Suggest Priority - HIGH (Urgent Crash)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Priority suggested as HIGH with reasoning\", function () {",
+                  "    pm.expect(jsonData.data.priority).to.eql(\"HIGH\");",
+                  "    pm.expect(jsonData.data.reason).to.be.a('string');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Sự cố khẩn cấp: Hệ thống cơ sở dữ liệu production bị nghẽn, khách hàng không thể đăng nhập ngay lúc này!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/suggest-priority",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "suggest-priority"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Request Management (CRUD & RBAC)",
+      "description": "Tests Client creating requests, RBAC visibility filtering, composite filters, and search.",
+      "item": [
+        {
+          "name": "3.1 Create Request (Client - Medium Priority)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 Created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Request created successfully with PENDING status\", function () {",
+                  "    pm.expect(jsonData.data.status).to.eql(\"PENDING\");",
+                  "    pm.expect(jsonData.data.companyId).to.eql(\"KR_CLIENT_Ss\");",
+                  "    pm.collectionVariables.set(\"request_id\", jsonData.data.id);",
+                  "    if (pm.environment && pm.environment.name) pm.environment.set(\"request_id\", jsonData.data.id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Giao diện mobile hiển thị nút bấm bị lệch\",\n  \"description\": \"Trên màn hình iPhone 14, nút Submit bị che khuất bởi navigation bar phía dưới.\",\n  \"category\": \"BUG\",\n  \"priority\": \"MEDIUM\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/requests",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests"]
+            }
+          }
+        },
+        {
+          "name": "3.2 Create Request (Client - HIGH Priority, Triggers Admin Alert)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 Created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"High priority ticket registered\", function () {",
+                  "    pm.expect(jsonData.data.priority).to.eql(\"HIGH\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Lỗi nghiêm trọng ngừng hoạt động hệ thống đặt phòng\",\n  \"description\": \"Toàn bộ người dùng không thể thực hiện giao dịch thanh toán trên cổng chính.\",\n  \"category\": \"BUG\",\n  \"priority\": \"HIGH\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/requests",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests"]
+            }
+          }
+        },
+        {
+          "name": "3.3 Get Request List (Client - Company Scoped)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Returns paginated requests of Samsung only\", function () {",
+                  "    pm.expect(jsonData.data.content).to.be.an('array');",
+                  "    jsonData.data.content.forEach(function(item) {",
+                  "        pm.expect(item.companyId).to.eql(\"KR_CLIENT_Ss\");",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests?page=0&size=10&sortBy=createdAt&sortDir=desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt"
+                },
+                {
+                  "key": "sortDir",
+                  "value": "desc"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "3.4 Get Request List with Filters & Search (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests?category=BUG&priority=MEDIUM&search=mobile&page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "BUG"
+                },
+                {
+                  "key": "priority",
+                  "value": "MEDIUM"
+                },
+                {
+                  "key": "search",
+                  "value": "mobile"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "3.5 Get Request Detail by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Details include history entries\", function () {",
+                  "    pm.expect(jsonData.data.id).to.eql(pm.collectionVariables.get(\"request_id\"));",
+                  "    pm.expect(jsonData.data.history).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{request_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{request_id}}"]
+            }
+          }
+        },
+        {
+          "name": "3.6 Get Request History Audit Trail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"History lists actions chronologically\", function () {",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "    pm.expect(jsonData.data[0].action).to.eql('CREATE');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{request_id}}/history",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{request_id}}", "history"]
+            }
+          }
+        },
+        {
+          "name": "3.7 AI Request Summary",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Summary and request id returned\", function () {",
+                  "    pm.expect(jsonData.data.summary).to.be.a('string');",
+                  "    pm.expect(jsonData.data.requestId).to.be.a('string');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{request_id}}/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{request_id}}", "summary"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Developer Assignment (Manual & Auto-Assignment)",
+      "description": "Tests Admin assigning developers manually and triggering intelligent auto-assignment.",
+      "item": [
+        {
+          "name": "4.1 Auto-Assign Developer (Admin triggers algorithm)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Developer auto-assigned using Rule 1 & Rule 2\", function () {",
+                  "    pm.expect(jsonData.data.assignedDeveloperId).to.not.be.null;",
+                  "    pm.expect(jsonData.data.assignedDeveloperName).to.not.be.null;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{request_id}}/assign",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{request_id}}", "assign"]
+            }
+          }
+        },
+        {
+          "name": "4.2 Manual Assign Developer (Admin assigns Dev 1)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Request assigned specifically to Dev 1\", function () {",
+                  "    pm.expect(jsonData.data.assignedDeveloperId).to.eql(pm.collectionVariables.get(\"dev1_id\"));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"developerId\": \"{{dev1_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{request_id}}/assign",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{request_id}}", "assign"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Request Lifecycle (Status Transitions & Validation)",
+      "description": "Tests state transitions: PENDING -> IN_PROGRESS -> DONE and validates strict transition rules.",
+      "item": [
+        {
+          "name": "5.1 Valid Transition: PENDING -> IN_PROGRESS (Dev 1 starts work)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Request status changed to IN_PROGRESS\", function () {",
+                  "    pm.expect(jsonData.data.status).to.eql(\"IN_PROGRESS\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dev1_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"IN_PROGRESS\",\n  \"memo\": \"Bắt đầu nhận việc và phân tích nguyên nhân lỗi layout trên iOS.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{request_id}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{request_id}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "5.2 Invalid Transition: Same Status IN_PROGRESS -> IN_PROGRESS (Expect 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400 Bad Request\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dev1_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"IN_PROGRESS\",\n  \"memo\": \"Thử cập nhật lại cùng trạng thái\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{request_id}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{request_id}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "5.3 Valid Transition: IN_PROGRESS -> DONE (Dev 1 completes task)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Request status changed to DONE\", function () {",
+                  "    pm.expect(jsonData.data.status).to.eql(\"DONE\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dev1_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"DONE\",\n  \"memo\": \"Đã sửa xong CSS safe-area-inset-bottom, kiểm thử hiển thị chuẩn trên tất cả dòng iPhone.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{request_id}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{request_id}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "5.4 Invalid Transition: DONE -> IN_PROGRESS (Cannot reopen, Expect 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400 Bad Request\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Reopen completed request is strictly blocked\", function () {",
+                  "    pm.expect(jsonData.status).to.eql(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{dev1_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"IN_PROGRESS\",\n  \"memo\": \"Cố gắng mở lại task đã hoàn thành\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/{{request_id}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "{{request_id}}", "status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Dashboard Statistics (Admin Only)",
+      "description": "Tests Dashboard KPIs calculation and RBAC restriction for non-admin users.",
+      "item": [
+        {
+          "name": "6.1 Get Request Stats (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Dashboard stats contain total, completion rate, and developer breakdown\", function () {",
+                  "    pm.expect(jsonData.data.totalRequests).to.be.at.least(1);",
+                  "    pm.expect(jsonData.data.completionRate).to.be.a('number');",
+                  "    pm.expect(jsonData.data.requestsByCategory).to.be.an('object');",
+                  "    pm.expect(jsonData.data.requestsByDeveloper).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "stats"]
+            }
+          }
+        },
+        {
+          "name": "6.2 Attempt Get Stats as Client (Expect 403 Forbidden)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 403 Forbidden\", function () {",
+                  "    pm.response.to.have.status(403);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{client_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/requests/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "requests", "stats"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Notifications & Alerts",
+      "description": "Tests fetching notifications (all / unread) and marking alerts as read with ownership validation.",
+      "item": [
+        {
+          "name": "7.1 Get My Alerts (Admin - Received Alert on High Priority Ticket)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Alert list retrieved\", function () {",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "    if (jsonData.data.length > 0) {",
+                  "        pm.collectionVariables.set(\"alert_id\", jsonData.data[0].id);",
+                  "        if (pm.environment && pm.environment.name) pm.environment.set(\"alert_id\", jsonData.data[0].id);",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/alerts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "alerts"]
+            }
+          }
+        },
+        {
+          "name": "7.2 Get My Alerts (Unread Only)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"All returned alerts are unread\", function () {",
+                  "    jsonData.data.forEach(function(item) {",
+                  "        pm.expect(item.isRead).to.be.false;",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/alerts?unreadOnly=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "alerts"],
+              "query": [
+                {
+                  "key": "unreadOnly",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "7.3 Mark Alert as Read",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"Alert marked as read\", function () {",
+                  "    pm.expect(jsonData.data.isRead).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/alerts/{{alert_id}}/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "alerts", "{{alert_id}}", "read"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
